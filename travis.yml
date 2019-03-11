@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t trajce92/react-test -f ./client/Dockerfile.dev ./client
+
+script: 
+  - docker run trajce92/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t trajce92/multi-client ./client
+  - docker build -t trajce92/multi-nginx ./nginx
+  - docker build -t trajce92/multi-server ./server
+  - docker build -t trajce92/multi-worker ./worker
+  #Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  #Take those images and push them to docker hub
+  - docker push trajce92/multi-client
+  - docker push trajce92/multi-nginx
+  - docker push trajce92/multi-server
+  - docker push trajce92/multi-worker
